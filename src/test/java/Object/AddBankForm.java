@@ -7,65 +7,74 @@ import org.openqa.selenium.support.PageFactory;
 
 public class AddBankForm {
 
-    public AddBankForm(WebDriver driver){
-        PageFactory.initElements(driver,this);
+    public AddBankForm(WebDriver driver) {
+        PageFactory.initElements(driver, this);
     }
 
-    @FindBy(xpath = "//span[normalize-space()='BANK MANAGEMENT']")
-    public WebElement clickBankManagementMenu;
+    /* ================= INPUT FIELDS ================= */
 
-    @FindBy(xpath = "//button[normalize-space()='Add']")
-    public WebElement clickAddBankButton;
-
-    // Bank Name
-    @FindBy(name = "bankName") // or use CSS/XPath
+    @FindBy(name = "bankName")
     public WebElement bankNameInput;
 
-    // Bank Code
     @FindBy(name = "bankCode")
     public WebElement bankCodeInput;
 
-    // Country dropdown
     @FindBy(name = "countryId")
     public WebElement countryDropdown;
 
-    // State dropdown
     @FindBy(name = "stateId")
     public WebElement stateDropdown;
 
-    // City dropdown
     @FindBy(name = "cityId")
     public WebElement cityDropdown;
 
-    // Latitude
     @FindBy(name = "latitude")
     public WebElement latitudeInput;
 
-    // Longitude
     @FindBy(name = "longitude")
     public WebElement longitudeInput;
 
-    // Contact Person Name
     @FindBy(name = "contactPersonName")
     public WebElement contactPersonNameInput;
 
-    // Contact Person Email
     @FindBy(name = "contactPersonEmail")
     public WebElement contactPersonEmailInput;
 
-    // Contact Person Phone
     @FindBy(name = "contactPersonPhone")
     public WebElement contactPersonPhoneInput;
 
-    // Status dropdown
     @FindBy(name = "status")
     public WebElement statusDropdown;
 
-    // Logo upload
-    @FindBy(css = "input[type='file']")
+    @FindBy(xpath = "//input[@type='file']")
     public WebElement logoUploadInput;
 
-    // Submit button
-    @FindBy(css = "button[type='submit']")
+    @FindBy(xpath = "//button[@type='submit']")
     public WebElement submitButton;
+
+    /* ================= ERROR MESSAGES ================= */
+
+    @FindBy(xpath = "//input[@name='bankName']/following-sibling::div")
+    public WebElement bankNameError;
+
+    @FindBy(xpath = "//input[@name='bankCode']/following-sibling::div")
+    public WebElement bankCodeError;
+
+    @FindBy(xpath = "//select[@name='countryId']/following-sibling::div")
+    public WebElement countryError;
+
+    @FindBy(xpath = "//select[@name='stateId']/following-sibling::div")
+    public WebElement stateError;
+
+    @FindBy(xpath = "//input[@name='latitude']/following-sibling::div")
+    public WebElement latitudeError;
+
+    @FindBy(xpath = "//input[@name='longitude']/following-sibling::div")
+    public WebElement longitudeError;
+
+    @FindBy(xpath = "//input[@name='contactPersonPhone']/following-sibling::div")
+    public WebElement phoneError;
+
+    @FindBy(xpath = "//input[@type='file']/following-sibling::div")
+    public WebElement logoError;
 }

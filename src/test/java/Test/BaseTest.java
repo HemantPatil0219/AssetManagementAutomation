@@ -1,5 +1,6 @@
 package Test;
 
+import Utils.VideoRecorderUtil;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -38,17 +39,21 @@ public class BaseTest {
     @AfterSuite(alwaysRun = true)
     public void stopSeleniumGrid() throws Exception {
         SeleniumGridManager.stopGrid();
+
+        // AVI → MP4 conversion must already be hooked here
+        // VideoConverterUtil.convertAviToMp4();
+
         ExtentReportManager.flushReport();
     }
 
     @Parameters("browser")
     @BeforeClass(alwaysRun = true)
     public void setupClass(@Optional("chrome") String browser) throws MalformedURLException {
-        browserName.set(browser);
 
-        WebDriver remoteDriver;
+        browserName.set(browser);
         URL gridUrl = new URL("http://localhost:4444/");
 
+        WebDriver remoteDriver;
         switch (browser.toLowerCase()) {
             case "firefox":
                 remoteDriver = new RemoteWebDriver(gridUrl, new FirefoxOptions());
@@ -56,10 +61,8 @@ public class BaseTest {
             case "edge":
                 remoteDriver = new RemoteWebDriver(gridUrl, new EdgeOptions());
                 break;
-            case "chrome":
             default:
                 remoteDriver = new RemoteWebDriver(gridUrl, new ChromeOptions());
-                break;
         }
 
         driver.set(remoteDriver);
@@ -67,7 +70,6 @@ public class BaseTest {
         getDriver().manage().deleteAllCookies();
         getDriver().manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
     }
-
 
     @AfterClass(alwaysRun = true)
     public void tearDownClass() {
@@ -77,29 +79,59 @@ public class BaseTest {
         }
     }
 
+    // ✅ SINGLE BeforeMethod
     @BeforeMethod(alwaysRun = true)
-    public void startReport(Method method) {
-        ExtentReportManager.createTest(method.getName());
-        ExtentReportManager.getTest().info("Starting test: " + method.getName());
+    public void beforeMethod(Method method) throws Exception {
+
+        String testName = method.getName() + "_" + getBrowserName();
+
+        ExtentReportManager.createTest(testName);
+        ExtentReportManager.getTest()
+                .info("Starting test: " + testName);
+
+        VideoRecorderUtil.startRecording(testName);
     }
 
+    // ✅ SINGLE AfterMethod
     @AfterMethod(alwaysRun = true)
-    public void endReport(ITestResult result) {
+    public void afterMethod(ITestResult result) throws Exception {
+
         String methodName = result.getMethod().getMethodName();
 
         switch (result.getStatus()) {
             case ITestResult.SUCCESS:
-                ExtentReportManager.getTest().log(Status.PASS, "Test Passed: " + methodName);
+                ExtentReportManager.getTest()
+                        .log(Status.PASS, "Test Passed: " + methodName);
                 break;
+
             case ITestResult.FAILURE:
-                ExtentReportManager.getTest().log(Status.FAIL, "Test Failed: " + methodName);
-                ExtentReportManager.getTest().log(Status.FAIL, result.getThrowable());
+                ExtentReportManager.getTest()
+                        .log(Status.FAIL, "Test Failed: " + methodName);
+                ExtentReportManager.getTest()
+                        .log(Status.FAIL, result.getThrowable());
                 break;
+
             case ITestResult.SKIP:
-                ExtentReportManager.getTest().log(Status.SKIP, "Test Skipped: " + methodName);
+                ExtentReportManager.getTest()
+                        .log(Status.SKIP, "Test Skipped: " + methodName);
                 break;
         }
 
+        // stop recording
+        VideoRecorderUtil.stopRecording();
+
+        // embed MP4 directly in report (browser-playable)
+        String mp4Path = VideoRecorderUtil.getMp4Path();
+
+        ExtentReportManager.getTest().info(
+                "<b>🎥 Test Execution Video</b><br>" +
+                        "<video width='720' height='420' controls>" +
+                        "<source src='" + mp4Path + "' type='video/mp4'>" +
+                        "Your browser does not support the video tag." +
+                        "</video>"
+        );
+
         ExtentReportManager.unload();
+        VideoRecorderUtil.clear();
     }
 }
